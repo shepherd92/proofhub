@@ -237,7 +237,11 @@ class ProjectBuilderTests(unittest.TestCase):
         status["verification"] = "supervisor_reviewed"
         status["established"] = []
         self.save_yaml(self.status_path, status)
-        self.assert_invalid_with("is too short")
+        builder = self.validate()
+        self.assertTrue(
+            any(diagnostic.location == "established" for diagnostic in builder.diagnostics),
+            "expected terminal status validation to reject an empty established list",
+        )
 
     def test_terminal_run_requires_verification_evidence(self) -> None:
         run = self.load_yaml(self.run_path)
