@@ -17,11 +17,19 @@ node_modules/
 pagefind/
 static/pagefind/
 
+# Derived proof-project data and continuation packages
+data/generated/proof_projects/
+static/generated/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
 # OS
 .DS_Store
 Thumbs.db
 *~
 
-# Logs
-*.log
+# Tool-specific development logs (proof-run logs remain trackable)
 npm-debug.log*

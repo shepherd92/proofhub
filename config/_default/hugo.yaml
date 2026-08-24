@@ -2,8 +2,8 @@
 # Guide: https://docs.hugoblox.com/
 # Hugo Documentation: https://gohugo.io/getting-started/configuration/
 
-title: ''
-baseURL: 'https://example.com/'
+title: 'Proof Relay'
+baseURL: 'https://example.github.io/proof-relay/'
 
 ############################
 ## LANGUAGE
@@ -53,7 +53,8 @@ cascade:
       path: /projects/**
       kind: page
     show_date: false
-    share: true
+    share: false
+    profile: false
 
   # Datasets
   - target:
@@ -97,12 +98,12 @@ outputs:
 
 build:
   writeStats: true
-enableGitInfo: false
 summaryLength: 30
 pagination:
   pagerSize: 10
 enableEmoji: true
 enableRobotsTXT: true
+enableGitInfo: true
 footnotereturnlinkcontents: <sup>^</sup>
 ignoreFiles: [".ipynb_checkpoints$", "\\.Rmd$", "\\.Rmarkdown$", "_cache$"]
 disableAliases: true

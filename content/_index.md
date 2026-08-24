@@ -3,10 +3,63 @@ title: 'Home'
 type: landing
 sections:
   - block: hero
+    id: intro
     content:
-      title: Welcome
-      text: Get started by adding new content with [Hugo Chat](https://hugo.chat/?utm_source=hugoblox_site&utm_medium=hero_cta&utm_content=starter_homepage) or editing visually with [Ownable CMS](https://marketplace.visualstudio.com/items?itemName=ownable.ownable) for VS Code.
+      eyebrow: A minimal, extensible proof-run archive
+      title: Continue the proof, not the duplication
+      text: Proof Relay records exactly what an AI agent tried, what it achieved, how well the result was checked, and the files needed for the next run.
+      primary_action:
+        text: Browse projects
+        url: /projects/
+        icon: hero/folder-open
+        style: gradient
+      secondary_action:
+        text: Add a project
+        url: /guide/
+        icon: hero/arrow-up-tray
+        style: text
     design:
       spacing:
-        padding: ['5rem', 0, '5rem', 0]
+        padding: ['6rem', 0, '5rem', 0]
+      background:
+        gradient:
+          start: 'rgba(79, 70, 229, 0.14)'
+          end: 'rgba(15, 118, 110, 0.04)'
+          direction: 135
+  - block: features
+    content:
+      title: A small contract with a complete handoff
+      text: The first version uses GitHub as the contribution and approval system. HugoBlox turns each accepted directory into a readable project page.
+      items:
+        - name: Structured status
+          icon: hero/check-badge
+          description: Separate established results, candidate claims, failed attempts, and open goals.
+        - name: Reproducible runs
+          icon: hero/code-bracket-square
+          description: Preserve prompts, visible events, outputs, model settings, architecture, timing, and artifacts.
+        - name: One-click continuation
+          icon: hero/arrow-down-tray
+          description: Generate a continuation prompt and a deterministic handoff ZIP on every build.
+  - block: collection
+    content:
+      title: Projects
+      text: Each card below is generated from one directory in `content/projects/`.
+      count: 6
+      page_type: projects
+      sort_by: Date
+      sort_ascending: false
+      filters:
+        folders:
+          - projects
+      archive:
+        enable: true
+        text: View all projects
+        link: /projects/
+    design:
+      view: card
+      columns: 2
+      fill_image: false
+      show_date: false
+      show_read_time: false
+      show_read_more: true
 ---

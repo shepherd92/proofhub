@@ -1,0 +1,26 @@
+schema_version: 1
+current_run: run-001
+as_of_runs:
+  - run-001
+outcome: candidate_proof
+verification: supervisor_reviewed
+summary: >-
+  The run produced the standard finite-product contradiction argument. The
+  natural-language proof has been reviewed for this demonstration, but the Lean
+  file is only a scaffold and has not been machine-checked.
+established: []
+candidate_results:
+  - claim: "The natural-language output gives Euclid's finite-product argument for infinitely many primes."
+    evidence:
+      - runs/run-001/output.txt
+special_cases: []
+failed_attempts:
+  - approach: "Treat the unfinished Lean scaffold as a verified proof."
+    scope: "The formal artifact in run-001."
+    reason: "It still contains a placeholder and no successful verification log is present."
+open_goals:
+  - "Choose and record an exact Lean/mathlib revision, then replace the placeholder in Main.lean with a complete proof."
+  - "Record a successful clean verification log."
+recommended_next_steps:
+  - "Start from Main.lean, inspect the available infinitude-of-primes lemmas, and remove the placeholder."
+extensions: {}

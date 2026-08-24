@@ -1,0 +1,48 @@
+schema_version: 1
+run_id: run-001
+parents: []
+submitted_by: example-supervisor
+execution:
+  status: completed
+  started_at: 2026-08-24T09:30:00Z
+  ended_at: 2026-08-24T09:42:00Z
+  wall_seconds: 720
+agent:
+  framework: example-proof-agent
+  version: "0.1"
+  architecture:
+    type: single_agent
+    description: "One proof-writing agent with access to a Lean workspace."
+models:
+  - provider: example-provider
+    name: example-prover-model
+    snapshot: null
+    role: prover
+    parameters:
+      reasoning_effort: high
+configuration:
+  maximum_iterations: 20
+  token_budget: 20000
+  concurrency: 1
+  tools:
+    - name: Lean
+      version: "not_recorded"
+  extensions: {}
+environment:
+  source_repository: null
+  source_commit: null
+  dependency_lockfiles: []
+result:
+  outcome: candidate_proof
+  verification: agent_reported
+  summary: "Produced a sound-looking natural-language proof and an unfinished Lean scaffold."
+  verification_command: null
+  verification_log: verification.log
+files:
+  prompt: prompt.txt
+  output: output.txt
+  events: events.jsonl
+  artifacts: artifacts
+publication:
+  redaction_reviewed: true
+extensions: {}

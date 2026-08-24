@@ -1,0 +1,260 @@
+{{- $page := .Page -}}
+{{- $projectID := $page.Params.project_id -}}
+{{- $projects := hugo.Data.generated.proof_projects -}}
+{{- $project := index $projects $projectID -}}
+
+{{- if not $project -}}
+  <aside class="proof-dashboard proof-panel">
+    <strong>Project data has not been generated.</strong>
+    <p class="proof-note">Run <code>python3 scripts/prepare_projects.py --generate</code>, then rebuild Hugo.</p>
+  </aside>
+{{- else -}}
+  {{- $status := $project.status -}}
+  <section class="proof-dashboard" aria-labelledby="proof-status-heading">
+    <article class="proof-panel proof-panel--problem" aria-labelledby="proof-problem-heading">
+      <p class="proof-meta">Exact uploaded statement</p>
+      <h2 id="proof-problem-heading">Problem statement</h2>
+      <pre class="proof-problem">{{ $project.problem }}</pre>
+    </article>
+
+    <div class="proof-dashboard__hero">
+      <div class="proof-dashboard__heading-row">
+        <div>
+          <p class="proof-meta">Current status · based on {{ delimit $status.as_of_runs ", " }}</p>
+          <h2 id="proof-status-heading">Where the proof stands</h2>
+        </div>
+        <div class="proof-badges" aria-label="Outcome and verification status">
+          <span class="proof-badge proof-badge--outcome">{{ replace $status.outcome "_" " " }}</span>
+          <span class="proof-badge proof-badge--verification">{{ replace $status.verification "_" " " }}</span>
+        </div>
+      </div>
+      <p class="proof-dashboard__summary">{{ $status.summary }}</p>
+
+      <div class="proof-downloads">
+        <button class="proof-button" type="button" data-copy-continuation="{{ $project.downloads.continuation | relURL }}">Copy continuation prompt</button>
+        <a class="proof-button proof-button--secondary" href="{{ $project.downloads.continuation | relURL }}" download>Download prompt</a>
+        <a class="proof-button proof-button--secondary" href="{{ $project.downloads.handoff | relURL }}" download>Download handoff ZIP</a>
+      </div>
+      <p class="proof-copy-status" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="proof-dashboard__grid">
+      <article class="proof-panel">
+        <h3>Established</h3>
+        {{- if $status.established -}}
+          <ul>
+            {{- range $item := $status.established -}}
+              <li>
+                {{ $item.claim }}
+                <span class="proof-evidence">
+                  {{- range $evidence := $item.evidence -}}
+                    {{- with $page.Resources.GetMatch $evidence -}}
+                      <a href="{{ .RelPermalink }}">{{ path.Base $evidence }}</a>
+                    {{- end -}}
+                  {{- end -}}
+                </span>
+              </li>
+            {{- end -}}
+          </ul>
+        {{- else -}}
+          <p class="proof-empty">Nothing is yet recorded as established.</p>
+        {{- end -}}
+      </article>
+
+      <article class="proof-panel">
+        <h3>Candidate results</h3>
+        {{- if $status.candidate_results -}}
+          <ul>
+            {{- range $item := $status.candidate_results -}}
+              <li>
+                {{ $item.claim }}
+                <span class="proof-evidence">
+                  {{- range $evidence := $item.evidence -}}
+                    {{- with $page.Resources.GetMatch $evidence -}}
+                      <a href="{{ .RelPermalink }}">{{ path.Base $evidence }}</a>
+                    {{- end -}}
+                  {{- end -}}
+                </span>
+              </li>
+            {{- end -}}
+          </ul>
+        {{- else -}}
+          <p class="proof-empty">No candidate claims are recorded.</p>
+        {{- end -}}
+      </article>
+
+      <article class="proof-panel">
+        <h3>Special cases</h3>
+        {{- if $status.special_cases -}}
+          <ul>
+            {{- range $item := $status.special_cases -}}
+              <li>
+                {{ $item.claim }}
+                <span class="proof-evidence">
+                  {{- range $evidence := $item.evidence -}}
+                    {{- with $page.Resources.GetMatch $evidence -}}
+                      <a href="{{ .RelPermalink }}">{{ path.Base $evidence }}</a>
+                    {{- end -}}
+                  {{- end -}}
+                </span>
+              </li>
+            {{- end -}}
+          </ul>
+        {{- else -}}
+          <p class="proof-empty">No special cases are recorded.</p>
+        {{- end -}}
+      </article>
+
+      <article class="proof-panel">
+        <h3>Open goals</h3>
+        {{- if $status.open_goals -}}
+          <ol>
+            {{- range $status.open_goals -}}<li>{{ . }}</li>{{- end -}}
+          </ol>
+        {{- else -}}
+          <p class="proof-empty">No open goals are recorded.</p>
+        {{- end -}}
+      </article>
+
+      <article class="proof-panel">
+        <h3>Recommended next steps</h3>
+        {{- if $status.recommended_next_steps -}}
+          <ol>
+            {{- range $status.recommended_next_steps -}}<li>{{ . }}</li>{{- end -}}
+          </ol>
+        {{- else -}}
+          <p class="proof-empty">No next step has been selected.</p>
+        {{- end -}}
+      </article>
+
+      <article class="proof-panel proof-panel--wide">
+        <h3>Scoped failed attempts</h3>
+        {{- if $status.failed_attempts -}}
+          <ul>
+            {{- range $attempt := $status.failed_attempts -}}
+              <li><strong>{{ $attempt.approach }}</strong> — {{ $attempt.reason }} <span class="proof-meta">Scope: {{ $attempt.scope }}</span></li>
+            {{- end -}}
+          </ul>
+        {{- else -}}
+          <p class="proof-empty">No failed approach has been recorded.</p>
+        {{- end -}}
+      </article>
+    </div>
+
+    <h2>Run history</h2>
+    <div class="proof-runs">
+      {{- range $run := $project.runs -}}
+        <details class="proof-run"{{ if eq $run.run_id $status.current_run }} open{{ end }}>
+          <summary>
+            <span class="proof-run__summary">
+              <strong>{{ $run.run_id }}</strong>
+              <span class="proof-badge proof-badge--outcome">{{ replace $run.result.outcome "_" " " }}</span>
+              <span class="proof-badge proof-badge--verification">{{ replace $run.result.verification "_" " " }}</span>
+            </span>
+          </summary>
+          <div class="proof-run__body">
+            <dl class="proof-run__facts">
+              <div class="proof-run__fact">
+                <dt>Architecture</dt>
+                <dd>{{ replace $run.agent.architecture.type "_" " " }}</dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Agent</dt>
+                <dd>{{ $run.agent.framework }}{{ with $run.agent.version }} / {{ . }}{{ end }}</dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Models</dt>
+                <dd>{{- range $index, $model := $run.models -}}{{ if $index }}<br>{{ end }}{{ $model.provider }} / {{ $model.name }} ({{ $model.role }}){{- end -}}</dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Wall time</dt>
+                <dd>
+                  {{- $seconds := $run.execution.wall_seconds -}}
+                  {{- if ne $seconds nil -}}
+                    {{- if lt $seconds 60 -}}{{ $seconds }} seconds
+                    {{- else if eq (mod $seconds 60) 0 -}}{{ div $seconds 60 }} minutes
+                    {{- else -}}{{ div $seconds 60 }}m {{ mod $seconds 60 }}s
+                    {{- end -}}
+                  {{- else -}}Not recorded{{- end -}}
+                </dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Submitted by</dt>
+                <dd>{{ $run.submitted_by }}</dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Started</dt>
+                <dd>{{ $run.execution.started_at | default "Not recorded" }}</dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Ended</dt>
+                <dd>{{ $run.execution.ended_at | default "Not recorded" }}</dd>
+              </div>
+              <div class="proof-run__fact">
+                <dt>Parents</dt>
+                <dd>
+                  {{- if $run.parents -}}
+                    {{- range $index, $parent := $run.parents -}}{{ if $index }}, {{ end }}{{ $parent.run_id }}{{- end -}}
+                  {{- else -}}None{{- end -}}
+                </dd>
+              </div>
+            </dl>
+            <p>{{ $run.result.summary }}</p>
+            <div class="proof-run__verification">
+              <h4>Verification record</h4>
+              {{- with $run.result.verification_command -}}
+                <p><span class="proof-meta">Recorded command</span><br><code>{{ . }}</code></p>
+              {{- else -}}
+                <p class="proof-empty">No verification command was recorded.</p>
+              {{- end -}}
+              {{- with $run.resources.verification_log -}}
+                {{- with $page.Resources.GetMatch . -}}<a href="{{ .RelPermalink }}">Open verification log</a>{{- end -}}
+              {{- end -}}
+            </div>
+
+            <details class="proof-run__configuration">
+              <summary>Full model, agent, configuration, and environment metadata</summary>
+              <div class="proof-configuration__grid">
+                <div><h4>Models</h4><pre>{{ jsonify (dict "indent" "  ") $run.models }}</pre></div>
+                <div><h4>Agent</h4><pre>{{ jsonify (dict "indent" "  ") $run.agent }}</pre></div>
+                <div><h4>Configuration</h4><pre>{{ jsonify (dict "indent" "  ") $run.configuration }}</pre></div>
+                <div><h4>Environment</h4><pre>{{ jsonify (dict "indent" "  ") $run.environment }}</pre></div>
+              </div>
+            </details>
+
+            <div class="proof-run__links">
+              {{- with $page.Resources.GetMatch $run.resources.prompt -}}<a href="{{ .RelPermalink }}">Initial prompt</a>{{- end -}}
+              {{- with $page.Resources.GetMatch $run.resources.output -}}<a href="{{ .RelPermalink }}">Final output</a>{{- end -}}
+              {{- with $page.Resources.GetMatch $run.resources.events -}}<a href="{{ .RelPermalink }}">Event log</a>{{- end -}}
+              {{- with $page.Resources.GetMatch $run.resources.manifest -}}<a href="{{ .RelPermalink }}">Run manifest</a>{{- end -}}
+              {{- with $run.resources.verification_log -}}{{- with $page.Resources.GetMatch . -}}<a href="{{ .RelPermalink }}">Verification log</a>{{- end -}}{{- end -}}
+              {{- range $artifact := $run.resources.artifacts -}}
+                {{- with $page.Resources.GetMatch $artifact.path -}}<a href="{{ .RelPermalink }}">{{ $artifact.name }}</a>{{- end -}}
+              {{- end -}}
+            </div>
+          </div>
+        </details>
+      {{- end -}}
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const root = document.currentScript.previousElementSibling;
+      if (!root || !root.classList.contains('proof-dashboard')) return;
+      const button = root.querySelector('[data-copy-continuation]');
+      const status = root.querySelector('.proof-copy-status');
+      if (!button || !status) return;
+      button.addEventListener('click', async () => {
+        try {
+          const response = await fetch(button.dataset.copyContinuation);
+          if (!response.ok) throw new Error('Download failed');
+          await navigator.clipboard.writeText(await response.text());
+          status.textContent = 'Continuation prompt copied.';
+        } catch (error) {
+          status.textContent = 'Copy was unavailable. Use “Download prompt” instead.';
+        }
+      });
+    })();
+  </script>
+{{- end -}}

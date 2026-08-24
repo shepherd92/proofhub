@@ -1,0 +1,17 @@
+Project: Euclid's theorem — calibration project
+Problem version: 1
+
+Goal
+Prove that there are infinitely many prime numbers.
+
+Equivalent formal target
+For every natural number N, there exists a prime p such that N < p.
+
+Definitions and assumptions
+- Natural numbers include zero.
+- "Prime" has its standard mathematical meaning.
+- A formal continuation should record the exact Lean/mathlib version and use its Prime predicate rather than redefining primality.
+
+Expected evidence
+- A complete natural-language argument may be recorded as a candidate proof.
+- The project may be marked machine_checked only after the formal artifact compiles in the recorded environment without placeholders or admitted goals.

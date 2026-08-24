@@ -1,12 +1,16 @@
 {
-  "name": "hugo-blox-starter",
+  "name": "proof-relay-mwe",
   "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@10.14.0",
-  "description": "Starter template for Hugo Blox with Tailwind CSS v4",
+  "description": "A HugoBlox MWE for publishing reproducible AI-assisted proof runs",
   "scripts": {
-    "dev": "hugo server --disableFastRender",
-    "build": "hugo --minify && pnpm run pagefind",
+    "postinstall": "node scripts/link-tailwind-cli.mjs",
+    "prepare:projects": "python3 scripts/prepare_projects.py --generate",
+    "check:projects": "python3 scripts/prepare_projects.py --check",
+    "test": "python3 -m unittest discover -s tests -v",
+    "dev": "python3 scripts/prepare_projects.py --generate && hugo server --disableFastRender",
+    "build": "python3 scripts/prepare_projects.py --generate && hugo --minify && pnpm run pagefind",
     "pagefind": "pagefind --site public 2>/dev/null || true"
   },
   "dependencies": {

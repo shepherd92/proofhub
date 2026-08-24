@@ -1,0 +1,11 @@
+Candidate natural-language proof
+
+Assume for contradiction that there are only finitely many primes p_1, ..., p_n. Consider
+
+    M = p_1 * ... * p_n + 1.
+
+Every integer greater than one has a prime divisor, so let q divide M. If q were one of p_1, ..., p_n, then q would divide both their product and M, hence q would divide 1. This is impossible. Therefore q is a prime not in the supposedly complete list, a contradiction. There are infinitely many primes.
+
+Formalization status
+
+I created a Lean scaffold expressing the desired target, but I did not complete or verify it. The file still contains a placeholder and must not be reported as a machine-checked proof.

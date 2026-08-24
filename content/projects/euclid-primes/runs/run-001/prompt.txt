@@ -1,0 +1,3 @@
+Prove that there are infinitely many prime numbers.
+
+First give a concise natural-language proof. Then begin a Lean formalization of the equivalent statement that for every natural number N there exists a prime p with N < p. Clearly distinguish a completed argument from any unfinished or unverified formal code. Save the best formal state even if verification does not succeed.

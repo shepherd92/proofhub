@@ -19,6 +19,7 @@ on:
 # Read-only permissions for security
 permissions:
   contents: read
+  pages: read
 
 # Prevent duplicate builds for the same PR
 concurrency:
@@ -38,6 +39,21 @@ jobs:
       with:
         # Fetch history for Hugo's .GitInfo and .Lastmod
         fetch-depth: 0
+
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+        cache: pip
+
+    - name: Install project tooling
+      run: python -m pip install -r requirements.txt
+
+    - name: Test project tooling
+      run: python -m unittest discover -s tests -v
+
+    - name: Validate projects and generate handoffs
+      run: python scripts/prepare_projects.py --generate
 
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -78,12 +94,7 @@ jobs:
         echo "Using Hugo version: $VERSION"
 
     - name: Install dependencies
-      run: |
-        # Install Tailwind CLI if package.json exists
-        if [ -f "package.json" ]; then
-          echo "Installing Tailwind dependencies..."
-          pnpm install --no-frozen-lockfile || npm install
-        fi
+      run: pnpm install --frozen-lockfile
 
     - name: Verify Tailwind CSS dependency
       if: hashFiles('package.json') != ''
@@ -101,17 +112,14 @@ jobs:
         hugo-version: ${{ env.HUGO_VERSION }}
         extended: true
 
-    # Cache dependencies (Go modules, node_modules) - stable, rarely changes
+    # Cache Hugo module downloads. Node dependencies are always reconstructed
+    # from the frozen pnpm lockfile above.
     - uses: actions/cache@v5
       with:
-        path: |
-          /tmp/hugo_cache_runner/
-          node_modules/
-          modules/*/node_modules/
-        key: ${{ runner.os }}-hugo-deps-${{ hashFiles('**/go.mod', '**/package-lock.json',
-          '**/pnpm-lock.yaml') }}
+        path: /tmp/hugo_cache_runner/
+        key: ${{ runner.os }}-hugo-modules-${{ hashFiles('**/go.mod', '**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-hugo-deps-
+          ${{ runner.os }}-hugo-modules-
 
     # Cache Hugo resources (processed images, CSS) - invalidates only when assets/config change
     - uses: actions/cache@v5
@@ -124,15 +132,26 @@ jobs:
 
     - name: Setup Pages
       id: pages
+      if: github.event_name != 'pull_request'
       uses: actions/configure-pages@v5
 
     - name: Build with Hugo
       env:
         HUGO_ENVIRONMENT: production
-        HUGO_BLOX_LICENSE: ${{ secrets.HUGO_BLOX_LICENSE }}
+        HUGO_BLOX_LICENSE: ${{ github.event_name != 'pull_request' && secrets.HUGO_BLOX_LICENSE || '' }}
       run: |
         echo "Hugo Cache Dir: $(hugo config | grep cachedir)"
-        hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+        SITE_BASE_URL="${{ steps.pages.outputs.base_url }}"
+        SITE_BASE_URL=${SITE_BASE_URL:-https://example.invalid/}
+        hugo --minify --baseURL "${SITE_BASE_URL%/}/"
+
+    - name: Check that raw exports were not published
+      run: |
+        PUBLISHED_RAW=$(find public/projects -type f -path '*/raw/*' -print -quit)
+        if [ -n "$PUBLISHED_RAW" ]; then
+          echo "::error::Raw project export was published: $PUBLISHED_RAW"
+          exit 1
+        fi
 
     - name: Generate Pagefind search index (if applicable)
       run: |
@@ -143,6 +162,7 @@ jobs:
 
     - name: Upload artifact
       id: upload
+      if: github.event_name != 'pull_request'
       uses: actions/upload-pages-artifact@v4
       with:
         path: ./public
