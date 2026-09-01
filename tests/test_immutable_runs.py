@@ -54,6 +54,86 @@ class ImmutableRunTests(unittest.TestCase):
         self.commit("new run")
         self.assertEqual([], immutable_changes(self.root, base))
 
+    def test_exact_original_publication_can_be_restored_after_a_failed_push(self) -> None:
+        manifest = "content/projects/example/runs/run-001/run.yaml"
+        output = "content/projects/example/runs/run-001/output.txt"
+        self.write(manifest, "schema_version: 1\nrun_id: run-001\n")
+        self.write(output, "original output\n")
+        self.commit("published")
+        self.write(output, "accidentally rewritten output\n")
+        bad_base = self.commit("bad rewrite")
+        self.write(output, "original output\n")
+        self.commit("restore exact publication")
+        self.assertEqual([], immutable_changes(self.root, bad_base))
+
+    def test_corruption_remains_a_failure_after_an_unrelated_push(self) -> None:
+        manifest = "content/projects/example/runs/run-001/run.yaml"
+        output = "content/projects/example/runs/run-001/output.txt"
+        self.write(manifest, "schema_version: 1\nrun_id: run-001\n")
+        self.write(output, "original output\n")
+        self.commit("published")
+        self.write(output, "accidentally rewritten output\n")
+        bad_base = self.commit("bad rewrite")
+        self.write("README.md", "An unrelated later change.\n")
+        self.commit("unrelated change")
+        self.assertEqual(
+            [PurePosixPath("content/projects/example/runs/run-001")],
+            immutable_changes(self.root, bad_base),
+        )
+
+    def test_partial_restoration_or_an_extra_file_still_fails(self) -> None:
+        manifest = "content/projects/example/runs/run-001/run.yaml"
+        output = "content/projects/example/runs/run-001/output.txt"
+        self.write(manifest, "schema_version: 1\nrun_id: run-001\n")
+        self.write(output, "original output\n")
+        self.commit("published")
+        self.write(output, "bad output\n")
+        bad_base = self.commit("bad rewrite")
+        self.write(output, "original output\n")
+        self.write("content/projects/example/runs/run-001/extra.txt", "not originally published\n")
+        self.commit("partial restoration")
+        self.assertEqual(
+            [PurePosixPath("content/projects/example/runs/run-001")],
+            immutable_changes(self.root, bad_base),
+        )
+
+    def test_non_ancestor_base_fails_closed(self) -> None:
+        self.write("README.md", "base\n")
+        common = self.commit("common")
+        subprocess.run(["git", "switch", "-q", "-c", "other"], cwd=self.root, check=True)
+        self.write("other.txt", "other branch\n")
+        other = self.commit("other")
+        subprocess.run(["git", "switch", "-q", "main"], cwd=self.root, check=True)
+        self.write("main.txt", "main branch\n")
+        self.commit("main")
+        self.assertNotEqual(common, other)
+        with self.assertRaisesRegex(ValueError, "not an ancestor"):
+            immutable_changes(self.root, other)
+
+    def test_first_parent_merge_result_defines_the_publication_snapshot(self) -> None:
+        self.write("README.md", "base\n")
+        base = self.commit("base")
+        subprocess.run(["git", "switch", "-q", "-c", "feature"], cwd=self.root, check=True)
+        manifest = "content/projects/example/runs/run-001/run.yaml"
+        output = "content/projects/example/runs/run-001/output.txt"
+        self.write(manifest, "schema_version: 1\nrun_id: run-001\n")
+        self.write(output, "intermediate branch output\n")
+        self.commit("intermediate feature state")
+        self.write(output, "reviewed merge output\n")
+        self.commit("reviewed feature state")
+        subprocess.run(["git", "switch", "-q", "main"], cwd=self.root, check=True)
+        subprocess.run(
+            ["git", "merge", "-q", "--no-ff", "feature", "-m", "publish feature"],
+            cwd=self.root,
+            check=True,
+        )
+        self.assertEqual([], immutable_changes(self.root, base))
+        self.write(output, "bad main-line rewrite\n")
+        bad_base = self.commit("bad main-line rewrite")
+        self.write(output, "reviewed merge output\n")
+        self.commit("restore reviewed merge output")
+        self.assertEqual([], immutable_changes(self.root, bad_base))
+
 
 if __name__ == "__main__":
     unittest.main()

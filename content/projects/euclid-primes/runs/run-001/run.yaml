@@ -1,6 +1,7 @@
 schema_version: 1
 run_id: run-001
 parents: []
+submitted_by: example-supervisor
 execution:
   status: completed
   started_at: 2026-08-24T09:30:00Z
