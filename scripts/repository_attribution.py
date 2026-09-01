@@ -137,8 +137,11 @@ class RepositoryAttribution:
         if sha is None:
             self._commit_cache[cache_key] = None
             return None
+        # Uppercase ``%aN``/``%aE`` apply the repository's standard .mailmap,
+        # allowing a corrected GitHub identity to cover older commits without
+        # rewriting immutable history.
         output = self._git(
-            ["show", "-s", "--format=%H%x00%an%x00%ae%x00%cI%x00%B%x00", sha]
+            ["show", "-s", "--format=%H%x00%aN%x00%aE%x00%cI%x00%B%x00", sha]
         )
         if output is None:
             self._commit_cache[cache_key] = None

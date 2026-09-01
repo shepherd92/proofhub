@@ -130,6 +130,30 @@ class RepositoryAttributionTests(unittest.TestCase):
         self.assertNotIn("bob.private@example.edu", rendered)
         self.assertNotIn("example.edu", rendered)
 
+    def test_mailmap_corrects_a_historical_identity_without_rewriting_history(self) -> None:
+        path, _ = self.commit(
+            "content/projects/example/status.yaml",
+            "summary: historical status\n",
+            name="local-account",
+            email="incorrect identity",
+            timestamp="2026-08-02T11:15:00+00:00",
+            message="Add historical status",
+        )
+        (self.root / ".mailmap").write_text(
+            "Correct Person <123+correct-user@users.noreply.github.com> "
+            "local-account <incorrect identity>\n",
+            encoding="utf-8",
+        )
+
+        with self.without_github_credentials():
+            result = RepositoryAttribution(self.root).for_path(path, introduced=False)
+
+        self.assertIsNotNone(result)
+        assert result is not None
+        self.assertEqual("@correct-user", result["updated_by"]["label"])
+        self.assertEqual("Correct Person", result["updated_by"]["display_name"])
+        self.assertNotIn("incorrect identity", json.dumps(result))
+
     def test_email_like_author_name_is_not_published(self) -> None:
         path, _ = self.commit(
             "content/projects/example/runs/run-001/run.yaml",
