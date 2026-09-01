@@ -148,11 +148,17 @@ class RepositoryAttribution:
             self._commit_cache[cache_key] = None
             return None
         decoded = [field.decode("utf-8", errors="replace").strip() for field in fields[:5]]
+        # Git releases differ on whether a UTC strict-ISO timestamp uses ``Z``
+        # or the equivalent ``+00:00`` suffix. Keep the
+        # generated site data byte-for-byte stable across Git versions.
+        committed_at = decoded[3]
+        if committed_at.endswith("Z"):
+            committed_at = f"{committed_at[:-1]}+00:00"
         commit = GitCommit(
             sha=decoded[0],
             author_name=decoded[1],
             author_email=decoded[2],
-            committed_at=decoded[3],
+            committed_at=committed_at,
             message=decoded[4],
         )
         if SHA_PATTERN.fullmatch(commit.sha) is None or not commit.author_name:
