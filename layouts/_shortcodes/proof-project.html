@@ -30,10 +30,70 @@
       </div>
       <p class="proof-dashboard__summary">{{ $status.summary }}</p>
 
-      <div class="proof-downloads">
-        <button class="proof-button" type="button" data-copy-continuation="{{ $project.downloads.continuation | relURL }}">Copy continuation prompt</button>
-        <a class="proof-button proof-button--secondary" href="{{ $project.downloads.continuation | relURL }}" download>Download prompt</a>
-        <a class="proof-button proof-button--secondary" href="{{ $project.downloads.handoff | relURL }}" download>Download handoff ZIP</a>
+      {{- with $status.review -}}
+        {{- $reviewer := .reviewed_by -}}
+        {{- if not $reviewer -}}
+          {{- with $status.repository_attribution -}}{{- $reviewer = .updated_by.label -}}{{- end -}}
+        {{- end -}}
+        <div class="proof-review">
+          <span aria-hidden="true">✓</span>
+          <p>
+            {{- if $reviewer -}}
+              <strong>Status reviewed by {{ $reviewer }}</strong>
+            {{- else -}}
+              <strong>Reviewer attribution will appear after this status is committed</strong>
+            {{- end -}}
+            <time datetime="{{ .reviewed_at }}">{{ time.Format "Jan 2, 2006 at 15:04 MST" .reviewed_at }}</time>
+            {{ with .note }}<span>{{ . }}</span>{{ end }}
+          </p>
+        </div>
+      {{- end -}}
+
+      {{- with $status.repository_attribution -}}
+        {{- $attribution := . -}}
+        {{- $person := .updated_by -}}
+        <p class="proof-repository-attribution">
+          <span>Latest status committed by</span>
+          {{- with $person.profile_url -}}
+            <a href="{{ . }}" rel="external">{{ $person.label }}</a>
+          {{- else -}}
+            <strong>{{ $person.label }}</strong>
+          {{- end -}}
+          <span aria-hidden="true">·</span>
+          <time datetime="{{ .committed_at }}">{{ time.Format "Jan 2, 2006" .committed_at }}</time>
+          <span aria-hidden="true">·</span>
+          {{- with .commit_url -}}
+            <a href="{{ . }}" rel="external">commit {{ $attribution.short_commit }}</a>
+          {{- else -}}
+            <span>commit {{ .short_commit }}</span>
+          {{- end -}}
+        </p>
+      {{- end -}}
+
+      <details class="proof-status-key">
+        <summary>What do these labels mean?</summary>
+        <p><strong>Outcome</strong> describes the mathematical claim: a candidate proof or refutation still needs stronger checking. <strong>Verification</strong> records the strongest completed check, independently of how plausible the result looks.</p>
+      </details>
+
+      <div class="proof-continuation" aria-labelledby="proof-continuation-heading">
+        <div class="proof-continuation__main">
+          <p class="proof-meta">Continue this project</p>
+          <h3 id="proof-continuation-heading">Download everything needed</h3>
+          <p class="proof-continuation__description">
+            This handoff starts from <a href="#run-{{ $status.current_run }}">{{ $status.current_run }}</a> and contains the exact problem, current status, continuation instructions, evidence, and reusable proof files.
+          </p>
+        </div>
+        <div class="proof-downloads">
+          <a class="proof-button" href="{{ $project.downloads.handoff | relURL }}" download>Download handoff ZIP</a>
+        </div>
+        <p class="proof-continuation__instruction"><strong>Then:</strong> give the ZIP to the next agent. When it finishes, upload only its new prompt, final output, short summary, and useful new proof files—not this ZIP. <a href="{{ "guide/" | relURL }}">See the 3-step upload guide.</a></p>
+        <details class="proof-continuation__advanced">
+          <summary>Prompt-only options</summary>
+          <div class="proof-downloads">
+            <button class="proof-button proof-button--secondary" type="button" data-copy-continuation="{{ $project.downloads.continuation | relURL }}">Copy prompt</button>
+            <a class="proof-button proof-button--secondary" href="{{ $project.downloads.continuation | relURL }}" download>Download prompt only</a>
+          </div>
+        </details>
       </div>
       <p class="proof-copy-status" role="status" aria-live="polite"></p>
     </div>
@@ -49,7 +109,7 @@
                 <span class="proof-evidence">
                   {{- range $evidence := $item.evidence -}}
                     {{- with $page.Resources.GetMatch $evidence -}}
-                      <a href="{{ .RelPermalink }}">{{ path.Base $evidence }}</a>
+                      <a href="{{ .RelPermalink }}" aria-label="Open evidence {{ $evidence }}">Evidence: {{ path.Base $evidence }}</a>
                     {{- end -}}
                   {{- end -}}
                 </span>
@@ -71,7 +131,7 @@
                 <span class="proof-evidence">
                   {{- range $evidence := $item.evidence -}}
                     {{- with $page.Resources.GetMatch $evidence -}}
-                      <a href="{{ .RelPermalink }}">{{ path.Base $evidence }}</a>
+                      <a href="{{ .RelPermalink }}" aria-label="Open evidence {{ $evidence }}">Evidence: {{ path.Base $evidence }}</a>
                     {{- end -}}
                   {{- end -}}
                 </span>
@@ -93,7 +153,7 @@
                 <span class="proof-evidence">
                   {{- range $evidence := $item.evidence -}}
                     {{- with $page.Resources.GetMatch $evidence -}}
-                      <a href="{{ .RelPermalink }}">{{ path.Base $evidence }}</a>
+                      <a href="{{ .RelPermalink }}" aria-label="Open evidence {{ $evidence }}">Evidence: {{ path.Base $evidence }}</a>
                     {{- end -}}
                   {{- end -}}
                 </span>
@@ -144,13 +204,15 @@
     <h2>Run history</h2>
     <div class="proof-runs">
       {{- range $run := $project.runs -}}
-        <details class="proof-run"{{ if eq $run.run_id $status.current_run }} open{{ end }}>
+        <details class="proof-run" id="run-{{ $run.run_id }}"{{ if eq $run.run_id $status.current_run }} open{{ end }}>
           <summary>
             <span class="proof-run__summary">
               <strong>{{ $run.run_id }}</strong>
+              {{- if eq $run.run_id $status.current_run -}}<span class="proof-current-base">Current continuation base</span>{{- end -}}
               <span class="proof-badge proof-badge--outcome">{{ replace $run.result.outcome "_" " " }}</span>
               <span class="proof-badge proof-badge--verification">{{ replace $run.result.verification "_" " " }}</span>
             </span>
+            <span class="proof-run__result">{{ $run.result.summary }}</span>
           </summary>
           <div class="proof-run__body">
             <dl class="proof-run__facts">
@@ -178,10 +240,47 @@
                   {{- else -}}Not recorded{{- end -}}
                 </dd>
               </div>
-              <div class="proof-run__fact">
-                <dt>Submitted by</dt>
-                <dd>{{ $run.submitted_by }}</dd>
-              </div>
+              {{- with $run.repository_attribution -}}
+                {{- $attribution := . -}}
+                {{- $person := .added_by -}}
+                <div class="proof-run__fact proof-run__fact--wide">
+                  <dt>Added to Proof Relay by</dt>
+                  <dd>
+                    {{- with $person.profile_url -}}
+                      <a href="{{ . }}" rel="external">{{ $person.label }}</a>
+                    {{- else -}}
+                      <strong>{{ $person.label }}</strong>
+                    {{- end -}}
+                    <span aria-hidden="true"> · </span>
+                    <time datetime="{{ .committed_at }}">{{ time.Format "Jan 2, 2006" .committed_at }}</time>
+                    <span aria-hidden="true"> · </span>
+                    {{- with .commit_url -}}
+                      <a href="{{ . }}" rel="external">commit {{ $attribution.short_commit }}</a>
+                    {{- else -}}
+                      <span>commit {{ .short_commit }}</span>
+                    {{- end -}}
+                    {{- with .co_contributors -}}
+                      <br><span class="proof-meta">With
+                        {{- range $index, $coauthor := . -}}
+                          {{ if $index }}, {{ end }}
+                          {{- with $coauthor.profile_url -}}<a href="{{ . }}" rel="external">{{ $coauthor.label }}</a>{{- else -}}{{ $coauthor.label }}{{- end -}}
+                        {{- end -}}
+                      </span>
+                    {{- end -}}
+                  </dd>
+                </div>
+              {{- else -}}
+                <div class="proof-run__fact proof-run__fact--wide">
+                  <dt>Repository attribution</dt>
+                  <dd>Available after this run is committed.</dd>
+                </div>
+              {{- end -}}
+              {{- with $run.submitted_by -}}
+                <div class="proof-run__fact">
+                  <dt>Run supplied by</dt>
+                  <dd>{{ . }}</dd>
+                </div>
+              {{- end -}}
               <div class="proof-run__fact">
                 <dt>Started</dt>
                 <dd>{{ $run.execution.started_at | default "Not recorded" }}</dd>
@@ -194,7 +293,11 @@
                 <dt>Parents</dt>
                 <dd>
                   {{- if $run.parents -}}
-                    {{- range $index, $parent := $run.parents -}}{{ if $index }}, {{ end }}{{ $parent.run_id }}{{- end -}}
+                    {{- range $index, $parent := $run.parents -}}
+                      {{ if $index }}<br>{{ end }}
+                      {{ replace $parent.relation "_" " " }} of <a href="#run-{{ $parent.run_id }}">{{ $parent.run_id }}</a>
+                      {{ with $parent.checkpoint }}<span class="proof-meta"> at {{ . }}</span>{{ end }}
+                    {{- end -}}
                   {{- else -}}None{{- end -}}
                 </dd>
               </div>
@@ -222,14 +325,39 @@
               </div>
             </details>
 
-            <div class="proof-run__links">
-              {{- with $page.Resources.GetMatch $run.resources.prompt -}}<a href="{{ .RelPermalink }}">Initial prompt</a>{{- end -}}
-              {{- with $page.Resources.GetMatch $run.resources.output -}}<a href="{{ .RelPermalink }}">Final output</a>{{- end -}}
-              {{- with $page.Resources.GetMatch $run.resources.events -}}<a href="{{ .RelPermalink }}">Event log</a>{{- end -}}
-              {{- with $page.Resources.GetMatch $run.resources.manifest -}}<a href="{{ .RelPermalink }}">Run manifest</a>{{- end -}}
-              {{- with $run.resources.verification_log -}}{{- with $page.Resources.GetMatch . -}}<a href="{{ .RelPermalink }}">Verification log</a>{{- end -}}{{- end -}}
-              {{- range $artifact := $run.resources.artifacts -}}
-                {{- with $page.Resources.GetMatch $artifact.path -}}<a href="{{ .RelPermalink }}">{{ $artifact.name }}</a>{{- end -}}
+            <div class="proof-run__record">
+              <h4>Run record</h4>
+              <div class="proof-run__links">
+                {{- with $page.Resources.GetMatch $run.resources.prompt -}}<a href="{{ .RelPermalink }}">Exact prompt</a>{{- end -}}
+                {{- with $page.Resources.GetMatch $run.resources.output -}}<a href="{{ .RelPermalink }}">Final output</a>{{- end -}}
+                {{- with $page.Resources.GetMatch $run.resources.events -}}<a href="{{ .RelPermalink }}">Visible event log</a>{{- end -}}
+                {{- with $page.Resources.GetMatch $run.resources.manifest -}}<a href="{{ .RelPermalink }}">Run manifest</a>{{- end -}}
+                {{- with $run.resources.verification_log -}}{{- with $page.Resources.GetMatch . -}}<a href="{{ .RelPermalink }}">Verification log</a>{{- end -}}{{- end -}}
+              </div>
+              {{- if or $run.resources.artifacts $run.resources.dependency_lockfiles -}}
+                <h4>Artifacts and environment files</h4>
+                <ul class="proof-artifacts">
+                  {{- range $artifact := $run.resources.artifacts -}}
+                    <li>
+                      {{- if $artifact.public -}}
+                        {{- with $page.Resources.GetMatch $artifact.path -}}<a href="{{ .RelPermalink }}">{{ $artifact.name }}</a>{{- end -}}
+                      {{- else -}}
+                        <span>{{ $artifact.name }} <strong>(handoff only)</strong></span>
+                      {{- end -}}
+                      <small>{{ $artifact.bytes }} bytes · SHA-256 <code>{{ $artifact.sha256 }}</code></small>
+                    </li>
+                  {{- end -}}
+                  {{- range $lockfile := $run.resources.dependency_lockfiles -}}
+                    <li>
+                      {{- if $lockfile.public -}}
+                        {{- with $page.Resources.GetMatch $lockfile.path -}}<a href="{{ .RelPermalink }}">{{ $lockfile.name }}</a>{{- end -}}
+                      {{- else -}}
+                        <span>{{ $lockfile.name }} <strong>(handoff only)</strong></span>
+                      {{- end -}}
+                      <small>{{ $lockfile.bytes }} bytes · SHA-256 <code>{{ $lockfile.sha256 }}</code></small>
+                    </li>
+                  {{- end -}}
+                </ul>
               {{- end -}}
             </div>
           </div>
@@ -252,7 +380,7 @@
           await navigator.clipboard.writeText(await response.text());
           status.textContent = 'Continuation prompt copied.';
         } catch (error) {
-          status.textContent = 'Copy was unavailable. Use “Download prompt” instead.';
+          status.textContent = 'Copy was unavailable. Use “Prompt only” instead.';
         }
       });
     })();

@@ -51,7 +51,7 @@ hugoblox:
     style: navbar # navbar | navbar-simple | minimal
     sticky: true
     align: center # left | center | right
-    search: false
+    search: true
     theme_toggle: true
 
   # ────────────────────────────────────────────────────────────────────────────

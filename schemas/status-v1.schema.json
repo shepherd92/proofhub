@@ -55,6 +55,7 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     },
+    "review": { "$ref": "#/$defs/review" },
     "extensions": { "type": "object" }
   },
   "allOf": [
@@ -74,6 +75,17 @@
             "minItems": 1
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "verification": { "const": "supervisor_reviewed" }
+        },
+        "required": ["verification"]
+      },
+      "then": {
+        "required": ["review"]
       }
     }
   ],
@@ -126,6 +138,21 @@
         "approach": { "type": "string", "minLength": 1 },
         "scope": { "type": "string", "minLength": 1 },
         "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewed_at"],
+      "properties": {
+        "reviewed_by": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Optional explicit reviewer when the reviewer differs from the Git commit author."
+        },
+        "reviewed_at": { "type": "string", "format": "date-time" },
+        "note": { "type": ["string", "null"] }
       }
     }
   }

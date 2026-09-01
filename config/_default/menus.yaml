@@ -1,10 +1,10 @@
 main:
   - name: Home
-    url: /
+    pageRef: /
     weight: 10
   - name: Projects
-    url: /projects/
+    pageRef: /projects
     weight: 20
-  - name: Add a project
-    url: /guide/
+  - name: Upload results
+    pageRef: /guide
     weight: 30

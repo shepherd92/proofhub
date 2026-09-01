@@ -49,36 +49,43 @@ jobs:
     - name: Install project tooling
       run: python -m pip install -r requirements.txt
 
+    - name: Protect published run history
+      env:
+        IMMUTABLE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+      run: |
+        if [[ -n "$IMMUTABLE_BASE" && ! "$IMMUTABLE_BASE" =~ ^0+$ ]]; then
+          python scripts/check_immutable_runs.py --base "$IMMUTABLE_BASE"
+        else
+          echo "No earlier revision is available; skipping immutable-run comparison."
+        fi
+
     - name: Test project tooling
       run: python -m unittest discover -s tests -v
 
     - name: Validate projects and generate handoffs
+      env:
+        # Production builds can resolve a Git commit author to a GitHub account.
+        # Pull-request code receives no token; local Git attribution still works.
+        PROOF_RELAY_GITHUB_REPOSITORY: ${{ github.repository }}
+        PROOF_RELAY_GITHUB_API_URL: ${{ github.api_url }}
+        PROOF_RELAY_GITHUB_TOKEN: ${{ github.event_name != 'pull_request' && github.token || '' }}
       run: python scripts/prepare_projects.py --generate
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ env.NODE_VERSION }}
 
     - name: Setup pnpm
       if: hashFiles('package.json') != ''
       uses: pnpm/action-setup@v6
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+
     - name: Get Hugo Version
       id: hugo-version
       run: |
-        # Install pinned yq version for robust YAML parsing
-        YQ_VERSION="v4.44.1"
-        if ! wget -q --tries=3 --waitretry=1 -O /tmp/yq \
-          "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"; then
-          echo "::error::Failed to download yq"
-          exit 1
-        fi
-        sudo mv /tmp/yq /usr/local/bin/yq
-        sudo chmod +x /usr/local/bin/yq
-
-        # Read hugo_version from hugoblox.yaml
-        VERSION=$(yq '.build.hugo_version // ""' hugoblox.yaml 2>/dev/null | grep -v '^null$' || true)
+        VERSION=$(python -c 'import pathlib,yaml; data=yaml.safe_load(pathlib.Path("hugoblox.yaml").read_text()) or {}; print(data.get("build", {}).get("hugo_version", ""))')
 
         # Fallback to a known stable version if not specified
         DEFAULT_VERSION="0.161.1"
@@ -125,8 +132,8 @@ jobs:
     - uses: actions/cache@v5
       with:
         path: resources/
-        key: ${{ runner.os }}-hugo-resources-${{ hashFiles('assets/**/*', 'config/**/*',
-          'hugo.yaml', 'package.json') }}
+        key: ${{ runner.os }}-hugo-resources-${{ hashFiles('assets/**/*', 'config/**/*', 'layouts/**/*',
+          'hugoblox.yaml', 'go.mod', 'go.sum', 'package.json', 'pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-hugo-resources-
 
@@ -142,23 +149,26 @@ jobs:
       run: |
         echo "Hugo Cache Dir: $(hugo config | grep cachedir)"
         SITE_BASE_URL="${{ steps.pages.outputs.base_url }}"
-        SITE_BASE_URL=${SITE_BASE_URL:-https://example.invalid/}
-        hugo --minify --baseURL "${SITE_BASE_URL%/}/"
+        if [ -z "$SITE_BASE_URL" ]; then
+          SITE_BASE_URL="https://example.invalid/${GITHUB_REPOSITORY#*/}/"
+        fi
+        SITE_BASE_URL="${SITE_BASE_URL%/}/"
+        echo "SITE_BASE_URL=$SITE_BASE_URL" >> "$GITHUB_ENV"
+        hugo --minify --cleanDestinationDir --baseURL "$SITE_BASE_URL"
 
     - name: Check that raw exports were not published
       run: |
-        PUBLISHED_RAW=$(find public/projects -type f -path '*/raw/*' -print -quit)
+        PUBLISHED_RAW=$(find public -type f -ipath '*/raw/*' -print -quit)
         if [ -n "$PUBLISHED_RAW" ]; then
           echo "::error::Raw project export was published: $PUBLISHED_RAW"
           exit 1
         fi
 
-    - name: Generate Pagefind search index (if applicable)
-      run: |
-        # Check if site uses Pagefind search
-        if [ -f "package.json" ] && grep -q "pagefind" package.json; then
-          pnpm run pagefind || npx pagefind --site "public" 2>/dev/null || true
-        fi
+    - name: Generate Pagefind search index
+      run: pnpm run pagefind
+
+    - name: Check internal links and repository-subpath routing
+      run: python scripts/check_site.py --site public --base-url "$SITE_BASE_URL"
 
     - name: Upload artifact
       id: upload

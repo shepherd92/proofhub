@@ -8,7 +8,6 @@
     "schema_version",
     "run_id",
     "parents",
-    "submitted_by",
     "execution",
     "agent",
     "models",
@@ -22,12 +21,18 @@
   "properties": {
     "schema_version": { "const": 1 },
     "run_id": { "$ref": "#/$defs/id" },
+    "draft": { "type": "boolean", "default": false },
     "parents": {
       "type": "array",
       "uniqueItems": true,
       "items": { "$ref": "#/$defs/parent" }
     },
-    "submitted_by": { "type": "string", "minLength": 1 },
+    "submitted_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Optional credit for the person or group that supplied the run material. Repository upload attribution is derived from Git history."
+    },
     "execution": { "$ref": "#/$defs/execution" },
     "agent": { "$ref": "#/$defs/agent" },
     "models": {
@@ -42,6 +47,23 @@
     "publication": { "$ref": "#/$defs/publication" },
     "extensions": { "type": "object" }
   },
+  "allOf": [
+    {
+      "if": {
+        "not": {
+          "properties": { "draft": { "const": true } },
+          "required": ["draft"]
+        }
+      },
+      "then": {
+        "properties": {
+          "publication": {
+            "properties": { "redaction_reviewed": { "const": true } }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "id": {
       "type": "string",
@@ -243,6 +265,26 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification": { "const": "machine_checked" }
+            },
+            "required": ["verification"]
+          },
+          "then": {
+            "properties": {
+              "verification_command": {
+                "type": "string",
+                "minLength": 1
+              },
+              "verification_log": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
         }
       ]
     },
@@ -262,7 +304,7 @@
       "additionalProperties": false,
       "required": ["redaction_reviewed"],
       "properties": {
-        "redaction_reviewed": { "const": true }
+        "redaction_reviewed": { "type": "boolean" }
       }
     }
   }

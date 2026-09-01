@@ -10,12 +10,12 @@ sections:
       text: Proof Relay records exactly what an AI agent tried, what it achieved, how well the result was checked, and the files needed for the next run.
       primary_action:
         text: Browse projects
-        url: /projects/
+        url: projects/
         icon: hero/folder-open
         style: gradient
       secondary_action:
-        text: Add a project
-        url: /guide/
+        text: Upload results
+        url: guide/
         icon: hero/arrow-up-tray
         style: text
     design:
@@ -28,15 +28,15 @@ sections:
           direction: 135
   - block: features
     content:
-      title: A small contract with a complete handoff
-      text: The first version uses GitHub as the contribution and approval system. HugoBlox turns each accepted directory into a readable project page.
+      title: Four essential files, one complete handoff
+      text: Contributors supply the problem, prompt, output, and a short summary. GitHub handles approval and attribution; Proof Relay generates the technical record and continuation package.
       items:
         - name: Structured status
           icon: hero/check-badge
           description: Separate established results, candidate claims, failed attempts, and open goals.
-        - name: Reproducible runs
+        - name: Lightweight run records
           icon: hero/code-bracket-square
-          description: Preserve prompts, visible events, outputs, model settings, architecture, timing, and artifacts.
+          description: Preserve the exact prompt and output. Add useful proof files and model or timing details only when available.
         - name: One-click continuation
           icon: hero/arrow-down-tray
           description: Generate a continuation prompt and a deterministic handoff ZIP on every build.
@@ -54,7 +54,7 @@ sections:
       archive:
         enable: true
         text: View all projects
-        link: /projects/
+        link: projects/
     design:
       view: card
       columns: 2

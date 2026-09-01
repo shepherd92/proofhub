@@ -1,0 +1,66 @@
+{{ define "main" }}
+  {{- $projects := hugo.Data.generated.proof_projects -}}
+  <main class="proof-catalog" id="main-content" data-pagefind-body>
+    <header class="proof-catalog__header">
+      <p class="proof-eyebrow">Versioned proof state</p>
+      <h1>{{ .Title }}</h1>
+      {{ with .Content }}<div class="proof-catalog__intro">{{ . }}</div>{{ end }}
+      <div class="proof-catalog__key" aria-label="How project labels work">
+        <span><strong>Outcome</strong> says what the mathematics currently supports.</span>
+        <span><strong>Verification</strong> says how independently that support was checked.</span>
+      </div>
+    </header>
+
+    {{- if not $projects -}}
+      <aside class="proof-panel proof-catalog__notice">
+        <strong>Project data has not been generated.</strong>
+        <p>Run <code>python3 scripts/prepare_projects.py --generate</code>, then rebuild Hugo.</p>
+      </aside>
+    {{- else -}}
+      <div class="proof-catalog__grid" role="list">
+        {{- range $page := .Pages.ByLastmod.Reverse -}}
+          {{- $project := index $projects $page.Params.project_id -}}
+          {{- with $project -}}
+            <article class="proof-catalog-card" role="listitem">
+              <div class="proof-catalog-card__topline">
+                <div class="proof-badges" aria-label="Outcome and verification status">
+                  <span class="proof-badge proof-badge--outcome"><span aria-hidden="true">◆</span> {{ replace .status.outcome "_" " " }}</span>
+                  <span class="proof-badge proof-badge--verification"><span aria-hidden="true">✓</span> {{ replace .status.verification "_" " " }}</span>
+                </div>
+                {{- with .status.review -}}
+                  <time datetime="{{ .reviewed_at }}">Reviewed {{ time.Format "Jan 2, 2006" .reviewed_at }}</time>
+                {{- end -}}
+              </div>
+              <h2><a href="{{ $page.RelPermalink }}">{{ .title }}</a></h2>
+              <p class="proof-catalog-card__summary">{{ .status.summary }}</p>
+              <dl class="proof-catalog-card__facts">
+                <div><dt>Continue from</dt><dd>{{ .status.current_run }}</dd></div>
+                <div><dt>Runs</dt><dd>{{ .counts.runs }}</dd></div>
+                <div><dt>Open goals</dt><dd>{{ .counts.open_goals }}</dd></div>
+              </dl>
+              {{- with .status.review -}}
+                {{- with .reviewed_by -}}
+                  <p class="proof-catalog-card__review">Status reviewed by <strong>{{ . }}</strong>.</p>
+                {{- else -}}
+                  {{- if not $project.status.repository_attribution -}}
+                    <p class="proof-catalog-card__review">Reviewer attribution will appear after the status is committed.</p>
+                  {{- end -}}
+                {{- end -}}
+              {{- end -}}
+              {{- with .status.repository_attribution -}}
+                {{- $person := .updated_by -}}
+                <p class="proof-catalog-card__review">
+                  {{- if and $project.status.review (not $project.status.review.reviewed_by) -}}Status reviewed and committed by
+                  {{- else -}}Latest status committed by
+                  {{- end -}}
+                  {{- with $person.profile_url }} <a href="{{ . }}" rel="external">{{ $person.label }}</a>{{ else }} <strong>{{ $person.label }}</strong>{{ end }}.
+                </p>
+              {{- end -}}
+              <a class="proof-catalog-card__action" href="{{ $page.RelPermalink }}">Open status and handoff <span aria-hidden="true">→</span></a>
+            </article>
+          {{- end -}}
+        {{- end -}}
+      </div>
+    {{- end -}}
+  </main>
+{{ end }}

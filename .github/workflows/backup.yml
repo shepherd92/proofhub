@@ -1,0 +1,41 @@
+name: Backup repository history
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-backup
+  cancel-in-progress: true
+
+jobs:
+  backup:
+    if: github.repository_owner != 'HugoBlox'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout complete history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Create and verify restorable Git bundle
+        run: |
+          git bundle create proof-relay.bundle --all
+          git bundle verify proof-relay.bundle
+          sha256sum proof-relay.bundle > proof-relay.bundle.sha256
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-relay-backup-${{ github.run_id }}
+          path: |
+            proof-relay.bundle
+            proof-relay.bundle.sha256
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0

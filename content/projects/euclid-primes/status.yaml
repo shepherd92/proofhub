@@ -23,4 +23,7 @@ open_goals:
   - "Record a successful clean verification log."
 recommended_next_steps:
   - "Start from Main.lean, inspect the available infinitude-of-primes lemmas, and remove the placeholder."
+review:
+  reviewed_at: 2026-08-24T10:00:00Z
+  note: "Reviewed as a calibration example; the natural-language argument is accepted, while the Lean artifact remains explicitly unverified."
 extensions: {}
