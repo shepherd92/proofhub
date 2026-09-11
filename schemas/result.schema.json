@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proof Relay result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "summary", "current_status"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["live", "imported"]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "current_status": {
+      "$ref": "#/$defs/current_status"
+    },
+    "model": {
+      "$ref": "#/$defs/model"
+    },
+    "agent": {
+      "$ref": "#/$defs/agent"
+    },
+    "timing": {
+      "$ref": "#/$defs/timing"
+    },
+    "capacity": {
+      "$ref": "#/$defs/capacity"
+    },
+    "configuration": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "nonempty_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000
+    },
+    "text_list": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonempty_text" }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "no_progress",
+        "partial",
+        "candidate_proof",
+        "proved",
+        "candidate_refutation",
+        "refuted"
+      ]
+    },
+    "current_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "summary",
+        "established",
+        "candidate_results",
+        "special_cases",
+        "failed_attempts",
+        "next_steps"
+      ],
+      "properties": {
+        "outcome": { "$ref": "#/$defs/outcome" },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "established": { "$ref": "#/$defs/text_list" },
+        "candidate_results": { "$ref": "#/$defs/text_list" },
+        "special_cases": { "$ref": "#/$defs/text_list" },
+        "failed_attempts": { "$ref": "#/$defs/text_list" },
+        "next_steps": { "$ref": "#/$defs/text_list" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "provider": { "$ref": "#/$defs/nonempty_text" },
+        "name": { "$ref": "#/$defs/nonempty_text" },
+        "version": { "$ref": "#/$defs/nonempty_text" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "$ref": "#/$defs/nonempty_text" },
+        "version": { "$ref": "#/$defs/nonempty_text" },
+        "architecture": { "$ref": "#/$defs/nonempty_text" }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "started_at": { "type": "string", "format": "date-time" },
+        "ended_at": { "type": "string", "format": "date-time" },
+        "duration_seconds": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "total_tokens": { "type": "integer", "minimum": 0 },
+        "amount": { "type": "number", "minimum": 0 },
+        "unit": { "$ref": "#/$defs/nonempty_text" },
+        "source": { "$ref": "#/$defs/nonempty_text" }
+      }
+    }
+  }
+}

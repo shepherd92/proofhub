@@ -33,3 +33,6 @@ Thumbs.db
 
 # Tool-specific development logs (proof-run logs remain trackable)
 npm-debug.log*
+
+# AI handoff containers (copy their content/ into the repository)
+proofhub-upload/

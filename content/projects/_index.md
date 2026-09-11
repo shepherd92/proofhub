@@ -1,10 +1,4 @@
 ---
 title: Proof projects
-summary: Browse the current state, evidence, complete run history, and continuation package for each problem.
-view: card
-cascade:
-  profile: false
-  share: false
+summary: See where each proof stands, inspect earlier work, or continue it with one generated prompt.
 ---
-
-Every project is backed by a versioned directory in the repository. Mathematical outcome and verification strength are displayed separately.

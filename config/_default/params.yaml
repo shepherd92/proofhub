@@ -14,7 +14,7 @@ hugoblox:
     organization: "Proof Relay"
     type: organization # person | organization | local_business
     tagline: "Continue proofs from where earlier AI runs stopped."
-    description: "A versioned catalogue of AI-assisted proof attempts, evidence, and continuation packages."
+    description: "Shared mathematical proof projects, earlier results, and prompts for continuing the work."
     social:
       twitter: ""
 
@@ -64,7 +64,7 @@ hugoblox:
   # COPYRIGHT
   # ────────────────────────────────────────────────────────────────────────────
   copyright:
-    notice: "© {year} {name}. Run metadata is published with explicit evidence and verification labels."
+    notice: "© {year} {name}."
     license:
       type: custom
 

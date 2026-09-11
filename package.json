@@ -6,12 +6,12 @@
   "description": "A HugoBlox MWE for publishing reproducible AI-assisted proof runs",
   "scripts": {
     "postinstall": "node scripts/link-tailwind-cli.mjs",
-    "prepare:projects": "python3 scripts/prepare_projects.py --generate",
-    "check:projects": "python3 scripts/prepare_projects.py --check",
+    "prepare:projects": "python3 scripts/build_projects.py --generate",
+    "check:projects": "python3 scripts/build_projects.py --check",
     "check:site": "python3 scripts/check_site.py --site public",
     "test": "python3 -m unittest discover -s tests -v",
-    "dev": "python3 scripts/prepare_projects.py --generate && hugo server --disableFastRender",
-    "build": "python3 scripts/prepare_projects.py --generate && hugo --minify --cleanDestinationDir && pnpm run pagefind && pnpm run check:site",
+    "dev": "python3 scripts/build_projects.py --generate && hugo server --disableFastRender",
+    "build": "python3 scripts/build_projects.py --generate && hugo --minify --cleanDestinationDir && pnpm run pagefind && pnpm run check:site",
     "pagefind": "pagefind --site public"
   },
   "dependencies": {

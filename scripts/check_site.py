@@ -13,7 +13,7 @@ import sys
 from urllib.parse import unquote, urljoin, urlsplit
 
 
-REFERENCE_ATTRIBUTES = {"action", "href", "poster", "src"}
+REFERENCE_ATTRIBUTES = {"action", "href", "poster", "src", "data-copy-prompt", "data-template"}
 IGNORED_SCHEMES = {"data", "javascript", "mailto", "tel"}
 LEAKED_HOSTS = {"0.0.0.0", "127.0.0.1", "::1", "example.github.io", "localhost"}
 

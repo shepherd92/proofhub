@@ -1,0 +1,30 @@
+kind: live
+summary: Produced the standard finite-product proof and an unfinished Lean scaffold.
+current_status:
+  outcome: candidate_proof
+  summary: >-
+    The natural-language proof gives Euclid's finite-product contradiction argument. The Lean file is
+    only a scaffold and still needs to be completed.
+  established: []
+  candidate_results:
+    - The natural-language output gives Euclid's finite-product argument for infinitely many primes.
+  special_cases: []
+  failed_attempts:
+    - The Lean scaffold is not a complete proof because it still contains a placeholder.
+  next_steps:
+    - Complete and check the proof in artifacts/Main.lean.
+model:
+  provider: example-provider
+  name: example-prover-model
+agent:
+  name: example-proof-agent
+  version: "0.1"
+  architecture: One proof-writing agent with access to a Lean workspace.
+timing:
+  started_at: 2026-08-24T09:30:00Z
+  ended_at: 2026-08-24T09:42:00Z
+  duration_seconds: 720
+configuration:
+  token_budget: 20000
+  maximum_iterations: 20
+  reasoning_effort: high

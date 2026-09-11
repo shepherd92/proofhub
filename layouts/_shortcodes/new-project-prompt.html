@@ -1,0 +1,44 @@
+<div class="proof-prompt-maker" data-template="{{ "generated/new-project/prompt.txt" | relURL }}">
+  <label for="proof-problem-input">Mathematical problem</label>
+  <textarea id="proof-problem-input" rows="7" placeholder="Paste the exact conjecture or problem here."></textarea>
+  <div class="proof-actions">
+    <button class="proof-button" type="button" data-prompt-action="copy">Copy AI prompt</button>
+    <button class="proof-link proof-link--button" type="button" data-prompt-action="download">Download prompt</button>
+  </div>
+  <p class="proof-copy-status" role="status" aria-live="polite"></p>
+</div>
+
+<script>
+  (() => {
+    const root = document.currentScript.previousElementSibling;
+    const input = root.querySelector('textarea');
+    const status = root.querySelector('[role="status"]');
+    const makePrompt = async () => {
+      const problem = input.value.trim();
+      if (!problem) throw new Error('Paste the mathematical problem first.');
+      const response = await fetch(root.dataset.template);
+      if (!response.ok) throw new Error('The prompt template could not be loaded.');
+      return `${await response.text()}${problem}\n`;
+    };
+    root.querySelectorAll('[data-prompt-action]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        try {
+          const prompt = await makePrompt();
+          if (button.dataset.promptAction === 'copy') {
+            await navigator.clipboard.writeText(prompt);
+            status.textContent = 'Prompt copied. Paste it into your AI session.';
+          } else {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([prompt], { type: 'text/plain' }));
+            link.download = 'start-proof-relay-project.txt';
+            link.click();
+            URL.revokeObjectURL(link.href);
+            status.textContent = 'Prompt downloaded.';
+          }
+        } catch (error) {
+          status.textContent = error.message;
+        }
+      });
+    });
+  })();
+</script>
