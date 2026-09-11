@@ -6,7 +6,7 @@ sections:
     id: intro
     content:
       eyebrow: Shared AI-assisted mathematics
-      title: Continue the proof, not the duplication
+      title: Shared progress. Deeper mathematics.
       text: See the current state of a problem, inspect earlier prompts and results, then continue in the ChatGPT desktop app with a context download and a ready-made prompt.
       primary_action:
         text: Start a project
