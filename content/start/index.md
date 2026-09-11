@@ -1,5 +1,6 @@
 ---
 title: Start a project
+type: start
 summary: Use ChatGPT to prepare one upload ZIP.
 show_date: false
 show_breadcrumb: false
@@ -7,18 +8,26 @@ reading_time: false
 share: false
 ---
 
-Enter the problem and paste the prompt into the **ChatGPT desktop app**. Use a chat with file creation available, such as Work. No Codex, API key, or scripts are needed.
+Use the **ChatGPT desktop app** to start new research or prepare results you already have. Choose a chat that can create downloadable files.
 
 {{< new-project-prompt >}}
 
-ChatGPT prepares **proofhub-upload.zip** with the problem, prompts, results, summary, and any available model/version, time, and usage records. Unknown metadata is left out.
+## Start new research
 
-When it finishes, **download and unzip the result, then copy the contents of `proofhub-upload/` into your repository, commit, and push**. ChatGPT does not need access to the repository. If the generated project name is already in use, ask ChatGPT to repackage under a different name rather than replacing it.
+1. Enter the mathematical problem above and click **Copy ChatGPT prompt**.
+2. Paste the prompt into a new ChatGPT chat and work on the problem there.
+3. Download and unzip **proofhub-upload.zip**. Copy the contents of `proofhub-upload/` into your repository, then commit and push.
 
-Already have results? Attach them in ChatGPT with the prompt, or use the chat where you did the work, and say: **“Package this existing work. Do not start a new proof attempt.”** It records the original research metadata when available.
+## Upload existing research
 
-To continue an existing project, attach the context download from its project page in ChatGPT and paste its continuation prompt.
+For research that is not yet listed on this website:
 
-If your chat cannot create downloadable files, use a ChatGPT mode with file creation available or ask for the individual file contents to save manually.
+1. Enter the mathematical problem above and click **Copy ChatGPT prompt**.
+2. Paste it into the chat where you did the research, or attach your research files in a new chat. Add: **“Package this existing work. Do not start a new proof attempt.”**
+3. Download and unzip **proofhub-upload.zip**. Copy the contents of `proofhub-upload/` into your repository, then commit and push.
+
+## Work on a listed project
+
+Open its [project page]({{< relref "/projects" >}}) to continue the research or add results to it. Use that page's context download and continuation or packaging prompt.
 
 Anyone with repository write access can add results. The website automatically shows their GitHub username.
