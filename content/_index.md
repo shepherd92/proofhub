@@ -7,7 +7,7 @@ sections:
     content:
       eyebrow: Shared AI-assisted mathematics
       title: Continue the proof, not the duplication
-      text: See the current state of a problem, inspect every earlier prompt and result, then continue with one copyable AI prompt.
+      text: See the current state of a problem, inspect earlier prompts and results, then continue in the ChatGPT desktop app with a context download and a ready-made prompt.
       primary_action:
         text: Start a project
         url: start/

@@ -1,22 +1,24 @@
 ---
 title: Start a project
-summary: One AI prompt creates the project files.
+summary: Use ChatGPT to prepare one upload ZIP.
 show_date: false
 show_breadcrumb: false
 reading_time: false
 share: false
 ---
 
-Enter the problem and copy the prompt into an AI session that can create files.
+Enter the problem and paste the prompt into the **ChatGPT desktop app**. Use a chat with file creation available, such as Work. No Codex, API key, or scripts are needed.
 
 {{< new-project-prompt >}}
 
-The AI writes the problem, prompts, results, summary, and available model/version, time, and usage records.
+ChatGPT prepares **proofhub-upload.zip** with the problem, prompts, results, summary, and any available model/version, time, and usage records. Unknown metadata is left out.
 
-When it finishes, **copy the contents of `proofhub-upload/` into your repository, then commit and push**. If the AI is already working in the repository, simply commit its changes.
+When it finishes, **download and unzip the result, then copy the contents of `proofhub-upload/` into your repository, commit, and push**. ChatGPT does not need access to the repository. If the generated project name is already in use, ask ChatGPT to repackage under a different name rather than replacing it.
 
-Already have results? Give those files to the AI with the prompt and say: **“Package this existing work. Do not start a new proof attempt.”** It records the original research metadata when available.
+Already have results? Attach them in ChatGPT with the prompt, or use the chat where you did the work, and say: **“Package this existing work. Do not start a new proof attempt.”** It records the original research metadata when available.
 
-To continue an existing project, use the prompt on its project page.
+To continue an existing project, attach the context download from its project page in ChatGPT and paste its continuation prompt.
+
+If your chat cannot create downloadable files, use a ChatGPT mode with file creation available or ask for the individual file contents to save manually.
 
 Anyone with repository write access can add results. The website automatically shows their GitHub username.

@@ -2,7 +2,7 @@
   <label for="proof-problem-input">Mathematical problem</label>
   <textarea id="proof-problem-input" rows="7" placeholder="Paste the exact conjecture or problem here."></textarea>
   <div class="proof-actions">
-    <button class="proof-button" type="button" data-prompt-action="copy">Copy AI prompt</button>
+    <button class="proof-button" type="button" data-prompt-action="copy">Copy ChatGPT prompt</button>
     <button class="proof-link proof-link--button" type="button" data-prompt-action="download">Download prompt</button>
   </div>
   <p class="proof-copy-status" role="status" aria-live="polite"></p>
@@ -26,7 +26,7 @@
           const prompt = await makePrompt();
           if (button.dataset.promptAction === 'copy') {
             await navigator.clipboard.writeText(prompt);
-            status.textContent = 'Prompt copied. Paste it into your AI session.';
+            status.textContent = 'Prompt copied. Paste it into the ChatGPT desktop app.';
           } else {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(new Blob([prompt], { type: 'text/plain' }));

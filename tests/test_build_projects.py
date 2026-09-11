@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import zipfile
 
 import yaml
 
@@ -70,7 +71,7 @@ class ProjectBuilderTests(unittest.TestCase):
         }
         self.assertTrue({"prompt.txt", "output.txt", "result.yaml"}.issubset(run_files))
 
-    def test_generation_creates_only_copyable_prompts_and_site_data(self) -> None:
+    def test_generation_creates_chatgpt_prompts_context_and_site_data(self) -> None:
         builder = self.builder()
         before = self.content_digest()
         builder.generate()
@@ -79,13 +80,50 @@ class ProjectBuilderTests(unittest.TestCase):
         self.assertTrue((generated / "new-project" / "prompt.txt").is_file())
         self.assertTrue((generated / "euclid-primes" / "continue.txt").is_file())
         self.assertTrue((generated / "euclid-primes" / "add-existing-result.txt").is_file())
-        self.assertFalse(any(generated.rglob("*.zip")))
+        self.assertEqual(
+            [generated / "euclid-primes" / "project-context.zip"],
+            list(generated.rglob("*.zip")),
+        )
         prompt = (generated / "euclid-primes" / "continue.txt").read_text(encoding="utf-8")
         self.assertIn("content/projects/euclid-primes/runs/run-002/", prompt)
         self.assertIn("model/version and usage", prompt)
         imported = (generated / "euclid-primes" / "add-existing-result.txt").read_text(encoding="utf-8")
         self.assertIn("Do not start new proof work", imported)
         self.assertIn("original research timestamps", imported)
+
+    def test_context_archive_preserves_research_without_unrelated_files(self) -> None:
+        artifacts = self.project / "runs" / "run-001" / "artifacts"
+        (artifacts / "proof.md").write_text("# A useful proof\n", encoding="utf-8")
+        (artifacts / "plot.png").write_bytes(b"binary\x00artifact")
+        (self.project / "unrelated.txt").write_text("Do not package me.\n", encoding="utf-8")
+        builder = self.builder()
+        self.assertEqual([], builder.diagnostics)
+        before = self.content_digest()
+        builder.generate()
+        archive_path = self.root / "static/generated/euclid-primes/project-context.zip"
+        with zipfile.ZipFile(archive_path) as archive:
+            members = archive.namelist()
+            prefix = "content/projects/euclid-primes/"
+            expected = {
+                prefix + "index.md", prefix + "problem.txt",
+                prefix + "runs/run-001/prompt.txt", prefix + "runs/run-001/output.txt",
+                prefix + "runs/run-001/result.yaml",
+            }
+            expected.update(
+                path.relative_to(self.root).as_posix() for path in artifacts.rglob("*") if path.is_file()
+            )
+            self.assertEqual(expected, set(members))
+            self.assertEqual(len(members), len(set(members)))
+            for member in members:
+                self.assertFalse(member.startswith("/"))
+                self.assertNotIn("..", Path(member).parts)
+                self.assertEqual((self.root / member).read_bytes(), archive.read(member))
+        self.assertEqual(before, self.content_digest())
+        first_archive = archive_path.read_bytes()
+        builder.generate()
+        self.assertEqual(first_archive, archive_path.read_bytes())
+        record = json.loads((self.root / "data/generated/proof_projects/euclid-primes.json").read_text())
+        self.assertEqual("generated/euclid-primes/project-context.zip", record["downloads"]["context"])
 
     def test_three_run_files_work_without_any_legacy_records(self) -> None:
         # The historical example retains its originals; new contributors need none of them.
@@ -119,6 +157,9 @@ class ProjectBuilderTests(unittest.TestCase):
         self.assertEqual("run-002", record["status"]["current_run"])
         self.assertEqual("Only one explicit lemma remains.", record["status"]["summary"])
         self.assertEqual(["run-002", "run-001"], [run["run_id"] for run in record["runs"]])
+        with zipfile.ZipFile(self.root / "static/generated/euclid-primes/project-context.zip") as archive:
+            self.assertIn("content/projects/euclid-primes/runs/run-001/prompt.txt", archive.namelist())
+            self.assertIn("content/projects/euclid-primes/runs/run-002/output.txt", archive.namelist())
 
     def test_missing_core_file_and_bad_yaml_are_clear_errors(self) -> None:
         (self.result_path.parent / "prompt.txt").unlink()

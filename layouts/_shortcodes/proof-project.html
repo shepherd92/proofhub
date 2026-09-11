@@ -27,19 +27,25 @@
 
     <article class="proof-next" aria-labelledby="continue-heading">
       <div>
-        <p class="proof-kicker">One prompt, one new folder</p>
+        <p class="proof-kicker">Continue in ChatGPT</p>
         <h2 id="continue-heading">Continue this project</h2>
-        <p>Open the latest project folder with your AI, then paste this prompt. The AI creates the next run folder with its summary, results, and available run metadata.</p>
+        <p>Download the project context and attach it in the ChatGPT desktop app, then paste the continuation prompt. Use a chat with file creation available, such as Work. ChatGPT prepares a ZIP with the new results, summary, and available run details.</p>
       </div>
       <div class="proof-actions">
-        <button class="proof-button" type="button" data-copy-prompt="{{ $project.downloads.continue_prompt | relURL }}">Copy continuation prompt</button>
-        <a class="proof-link" href="{{ $project.downloads.continue_prompt | relURL }}" download>Download instead</a>
+        <a class="proof-button" href="{{ $project.downloads.context | relURL }}" download="{{ $project.project_id }}-context.zip">Download project context</a>
+        <button class="proof-button proof-button--quiet" type="button" data-copy-prompt="{{ $project.downloads.continue_prompt | relURL }}">Copy continuation prompt</button>
+        <a class="proof-link" href="{{ $project.downloads.continue_prompt | relURL }}" download>Download prompt</a>
       </div>
+      <p>Unzip ChatGPT's <code>proofhub-upload.zip</code>, copy the contents of <code>proofhub-upload/</code> into your up-to-date repository, then commit and push. Keep existing runs; if a run number is already taken, give ChatGPT the latest context and ask it to repackage.</p>
       <details class="proof-existing">
         <summary>Already have a result for this project?</summary>
-        <p>Give the result files to the AI, then use the packaging prompt. It records the original model, time, and capacity when those are available.</p>
+        <p>Attach the same project context and your research files in ChatGPT, or use the chat where you did the research. Paste the packaging prompt below. It creates the upload ZIP without doing new proof work, preserving the original model, time, and usage when available.</p>
         <button class="proof-button proof-button--quiet" type="button" data-copy-prompt="{{ $project.downloads.existing_result_prompt | relURL }}">Copy packaging prompt</button>
         <a class="proof-link" href="{{ $project.downloads.existing_result_prompt | relURL }}" download>Download prompt</a>
+      </details>
+      <details class="proof-existing">
+        <summary>ChatGPT cannot open or create a ZIP?</summary>
+        <p>Unzip the context download and attach the needed files instead. If file creation is unavailable, use a ChatGPT mode that can create files, or ask for each file's complete contents to save manually. No Codex, API key, or scripts are needed.</p>
       </details>
       <p class="proof-copy-status" role="status" aria-live="polite"></p>
     </article>
@@ -151,7 +157,7 @@
             const response = await fetch(button.dataset.copyPrompt);
             if (!response.ok) throw new Error('Could not load prompt');
             await navigator.clipboard.writeText(await response.text());
-            status.textContent = 'Prompt copied. Paste it into your AI session.';
+            status.textContent = 'Prompt copied. Paste it into ChatGPT with the project context attached.';
           } catch (error) {
             status.textContent = 'Copy was unavailable. Use the download link instead.';
           }
