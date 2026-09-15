@@ -1,0 +1,71 @@
+Prepare a Proof Relay project for the problem at the end of this prompt.
+
+If I supply completed work, package it faithfully without starting new proof work and set kind to imported. Otherwise start working on the problem and set kind to live, noting the UTC start before you begin when a clock is available. After each requested research task, generate the files below before replying.
+
+This workflow uses the ChatGPT desktop app. Do not require Codex, an API key, a terminal, a local repository checkout, or a GitHub connection. Use your file-creation tools to create the requested paths inside proofhub-upload/, then return one actual downloadable file named proofhub-upload.zip containing that folder. Do not merely display a folder tree or invent a download link.
+
+If you cannot create files or a downloadable ZIP in this chat, explain that limitation briefly. Offer individual downloadable files if supported; otherwise provide each file's exact relative path and complete contents so it can be saved manually. Do not redirect me to Codex or ask me to run scripts.
+
+After each requested research task, produce the updated ZIP before replying. Keep separate run folders for separate tasks. If this chat has already prepared runs that I have not yet published, include those pending run folders too, but never copies of previous ZIPs or the input context archive. Tell me to unzip the result and copy the contents of proofhub-upload/ into the repository, then commit and push. Do not commit or push yourself.
+
+Choose a short lowercase ID using letters, numbers, and hyphens. Do not assume you can see the repository; check for a collision only if I supplied its project list. Inside proofhub-upload/, create:
+
+content/projects/<short-project-id>/
+  index.md
+  problem.txt
+  runs/run-001/
+    prompt.txt
+    output.txt
+    result.yaml
+    artifacts/  (optional useful proof files and reproducibility files)
+
+Use run-001 for the first task. For each later task in this chat, use the next unused run number (run-002, run-003, and so on), preserve earlier run folders, and update the cumulative current_status in the new result.yaml. Keep the same project ID and problem statement unless I explicitly change the problem.
+
+The contents of index.md are:
+---
+title: "A concise mathematical title"
+project_id: <short-project-id>
+build:
+  publishResources: false
+---
+
+{{< proof-project >}}
+
+Write the precise mathematical problem to problem.txt.
+For live work preserve the visible instructions I gave you in prompt.txt, and put your substantive final mathematical response in output.txt.
+For imported work preserve the ORIGINAL visible prompt(s) and output(s) verbatim when supplied. If the original prompt is missing, say "Original prompt not recorded." Do not substitute this packaging prompt or invent a transcript. Put any synthesis in result.yaml. For several separate original runs, make consecutive run folders and keep each run's metadata separate.
+Save only useful artifacts. Preserve accessible visible conversation logs as optional artifacts if they help continuation. Do not include hidden reasoning, secrets, or copies of earlier upload packages.
+
+Write result.yaml with these required fields. Use real findings and empty lists where appropriate; none of this example text should survive in the result.
+
+kind: live  # use imported when packaging supplied completed work
+summary: "What this run achieved."
+current_status:
+  outcome: partial
+  summary: "Cumulative state of the entire project after this run."
+  established: []
+  candidate_results: []
+  special_cases: []
+  failed_attempts: []
+  next_steps: []
+
+Allowed outcomes: no_progress, partial, candidate_proof, proved, candidate_refutation, refuted.
+Each list contains concise strings. Distinguish established facts from plausible claims. State reasons and scope for failed approaches. The website reports these assessments; it does not verify mathematics.
+
+Optionally add exact metadata when available:
+model: {name: "...", provider: "...", version: "..."}
+agent: {name: "...", version: "...", architecture: "..."}
+timing: {started_at: "UTC timestamp", ended_at: "UTC timestamp", duration_seconds: integer}
+capacity: {input_tokens: integer, output_tokens: integer, total_tokens: integer, source: "..."}
+configuration: {reasoning_effort: "...", token_budget: integer}
+
+These are field examples, not values to copy. All metadata fields are optional. For other measured usage use capacity.amount, capacity.unit, and capacity.source. A token budget is configuration, never capacity spent. Do not use an account-wide quota as project usage. Omit unknown values; never guess or ask the user to fill them in.
+
+For live work, record the start and end with the environment's clock when available. Use run-specific model/version and usage supplied by the runtime. ChatGPT may not expose its exact model version, elapsed research time, or token usage; omit unavailable values rather than estimating them or copying a previous run's settings. If the final API usage is unavailable until after this response, omit it. For imported work use original research timestamps, duration, model, and usage from the source logs. Do not record this packaging session as the original research time or model.
+
+Do not ask me to choose an ID or fill in metadata. Do not run a Proof Relay import command. If the chosen project ID is already in use when I copy it, repackage under a different ID without overwriting the existing project.
+When finished, provide the ZIP download and identify the exact generated project folder. Ensure output.txt contains the mathematical result, not just this file handoff message.
+
+MATHEMATICAL PROBLEM
+--------------------
+Calculate the diameter of the Cayley grapjh of S_10 with your favorite generating pair.

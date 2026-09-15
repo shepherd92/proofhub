@@ -1,0 +1,3 @@
+Calculate the diameter of a Cayley graph of S_10 using a generating pair of your choice. State the chosen generators and the convention for edges.
+
+Original problem: Calculate the diameter of the Cayley grapjh of S_10 with your favorite generating pair.

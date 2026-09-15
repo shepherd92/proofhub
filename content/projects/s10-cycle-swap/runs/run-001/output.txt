@@ -1,0 +1,38 @@
+The diameter is 45 for the following generating pair and convention.
+
+Let a=(1 2 3 4 5 6 7 8 9 10) and b=(1 2). I use the undirected Cayley graph Cay(S_10,{a,b}): vertices are permutations, and edges join g to ga, ga^{-1}, and gb. Thus both directions of the cycle generator cost one step. This answer is not a calculation for the directed graph allowing only a and b.
+
+Why these generators suffice
+For k=0,...,8, a^k b a^{-k}=(k+1 k+2). These adjacent transpositions generate S_10, so the graph is connected. Left multiplication is a graph automorphism, hence the diameter equals the maximum distance from the identity.
+
+Exact finite computation
+I ran exhaustive breadth-first search from the identity, with unit-cost moves a, a^{-1}, b. It visited all 10!=3,628,800 vertices. The last nonempty layer was layer 45, containing one permutation; there was no layer 46. The final layers were:
+
+Distance   Number of permutations
+40         302
+41         92
+42         21
+43         6
+44         3
+45         1
+
+The unique permutation at distance 45 has one-line notation
+[2,1,10,9,8,7,6,5,4,3],
+i.e. (1 2)(3 10)(4 9)(5 8)(6 7).
+
+One shortest word reaching it is the following 45-letter word, where A=a^{-1}; multiply on the right in the displayed order:
+b A b a b a b A b A b A b a b a b a b a a b a b a b a b A b A b A b a b a b A b A A A A A
+
+Why the computation proves the claim
+Permutations are stored as lists of their images. Right multiplication by a rotates the image list left, multiplication by a^{-1} rotates it right, and multiplication by b swaps the first two entries. The Lehmer rank sum_i c_i (9-i)!, where c_i is the number of later entries smaller than entry i, is a bijection to the integers 0,...,10!-1 and indexes the distance array without hash collisions.
+
+Breadth-first search assigns the exact minimum word length when each vertex is first discovered. After the search, the program additionally checks every edge: its endpoint labels differ by at most one, and every nonidentity vertex has a neighbor with label one smaller. All labels are nonnegative and the identity alone has label zero. These checks also certify the distances directly: along any path from the identity the labels rise by at most one per step, while repeatedly taking a predecessor constructs a path of exactly the assigned length. The program verifies that the displayed word has length 45 and evaluates to the reported farthest permutation.
+
+Consequently every vertex is at distance at most 45 from the identity, and the displayed permutation is at distance exactly 45. Vertex transitivity gives diameter 45.
+
+Status: proved by exhaustive computation, subject to the usual correctness assumptions for the compiler and execution environment. No general formula for other symmetric groups is claimed.
+
+Reproducibility files
+artifacts/diameter.cpp contains the complete C++17 search and verification program, without external dependencies.
+artifacts/computation.txt contains the actual program output, including every layer count.
+artifacts/README.txt records the execution details and optional reproduction command.
